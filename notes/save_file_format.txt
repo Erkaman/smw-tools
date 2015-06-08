@@ -1,0 +1,168 @@
+file always starts with:
+
+53 4D 57 5F = SMW_ 
+37 00 00 00
+
+
+
+seems like they're using inflate to compress and stuff.
+
+
+config file:
+
+
+FIRST ten bytes are read:(but appearently only one is read)
+
+76633EEC  C2 14 00 90 FE FF FF FF  Â.þÿÿÿ
+76633EF4  00 00 00 00 D4 FF FF FF  ....Ôÿÿÿ
+76633EFC  00 00 00 00 FE FF FF FF  ....þÿÿÿ
+76633F04  DF F1 65 76 F6 F1 65 76  ßñevöñev
+
+
+then 	2 bytes  
+        2 bytes
+		1 byte
+		
+	
+Data.dat
+,first read 4 the first 4 bytes: C3 2C 00 00
+
+first the app reads in the first four bytes of every dat-file. 
+
+music/MusicDataList.mdl
+
+in music.dat, at offset 0x035e the single byte 0x45 is read, after that the following byte 0x77 is read.
+LH meaning in ogg?
+
+
+char.png
+
+0222 3c10 is location of output buffer
+
+in file start is 0x01cb6a9e
+
+number of bytes to read is 0xd086
+
+
+
+02223C10  9F DB 41 37 3F DC 3A D1  ŸÛA7?Ü:Ñ
+02223C18  F7 A9 72 7B CB 2C 04 81  ÷©r{Ë,
+02223C20  2D F2 A6 61 A8 A6 74 55  -ò¦a¨¦tU
+02223C28  D6 9B 99 03 4D 0F A1 64  Ö›™M¡d
+02223C30  0D 89 39 86 7B 42 6E 46  .‰9†{BnF
+02223C38  B7 DC 72 7B CD 2C 61 51  ·Ür{Í,aQ
+02223C40  A2 EB FB D6 93 AC E7 7D  ¢ëûÖ“¬ç}
+02223C48  04 49 C4 89 56 50 D4 FA  IÄ‰VPÔú
+
+
+
+a =10
+b,11
+c,12
+d,13
+
+
+0xA8a0
+
+0x2DFE8
+
+0x33b98
+
+
+at
+0x01EBDFE8                       .
+a png is stored in ram memory!
+
+
+
+
+ent2.dat
+
+img/field/cliff_glass.png
+img/field/cliff_grass_die.png
+img/field/cliff_grass_rev.png
+
+
+
+at img.dat file, 
+
+at offset 0x01CC87CA is the file img/logo.png
+
+
+memory bufffer are allocated with heapalloc to contain the decoded png image. 
+this buffer is at address 0x002C0000
+
+then a buffer of size 4 is alloced. 
+
+buffer of encoded data is at:
+
+0x01F8DFE8 
+
+
+
+
+b167c0ea
+
+
+92
+
+
+ecx =00 18 f1 80
+
+
+ PUSH ESI							ignore                       
+ MOV ESI,ECX                     	ignore
+ DEC DWORD PTR DS:[ESI+9C4]			decrease value of constant. but we can ignore it for now.
+ JNZ SHORT SuperMar.0048B510        ignore for now
+ CALL SuperMar.0048B420				ignore for now
+ MOV EAX,DWORD PTR DS:[ESI+9C8]    	
+ MOV ECX,DWORD PTR DS:[EAX]
+ ADD EAX,4
+ MOV DWORD 	PTR DS:[ESI+9C8],EAX        
+ MOV EAX,ECX   eax = ecx;  // ecx contains array value.
+ SHR EAX,0B    eax >>= 0x0B;                     
+ XOR ECX,EAX   ecx ^= eax;
+ MOV EDX,ECX   edx = ecx;
+ AND EDX,FF3A58AD  edx &=  0xFF3A58AD;
+ SHL EDX,7  edx <<= 7;
+ XOR ECX,EDX ecx ^= edx;
+ MOV EAX,ECX  eax = ecx;
+ AND EAX,FFFFDF8C  eax &= 0xFFFFDF8C;
+ SHL EAX,0F  eax <<= 0x0F;
+ XOR ECX,EAX  ecx ^= eax;
+ MOV EAX,ECX  eax = ecx;
+ SHR EAX,12  eax >>= 0x12;
+ XOR EAX,ECX  eax ^= ecx;      
+ POP ESI   
+ RETN
+ 
+ 
+ 
+ 
+ constant at 	esi+9c8 is intially:
+ 
+ 84 f1 18 00. this value is constantly increased by four. 
+ 
+ 
+ 00 18 f1 84 is the address
+ 
+ 73 23 75 71 is the value
+ 
+ e9 41 2f 29 next value
+ 
+ 26f is the size of the array. 
+ 
+ 
+ 5a e9 	e7 cc
+ 
+ 
+ 84 f1 18 00 is the entire address to the array of codes.
+ 
+ 
+ 
+ 73 23 75 71
+
+
+the decoding code is at line: 
+ 00486CF5  |> 8D4C24 18      /LEA ECX,DWORD PTR SS:[ESP+18]           ;  ecx is probly argument to function call. ecx is always asiggned the same value it seems
+

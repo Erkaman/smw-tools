@@ -166,3 +166,96 @@ ecx =00 18 f1 80
 the decoding code is at line: 
  00486CF5  |> 8D4C24 18      /LEA ECX,DWORD PTR SS:[ESP+18]           ;  ecx is probly argument to function call. ecx is always asiggned the same value it seems
 
+
+ at
+ esi +9c4 is the counter
+ esi +9c8 is the array beginning. 
+ 
+ 30 9c db 3e
+ f1 4e 8a d8
+ 7c a7 6e b3
+ 
+initally it contains the array data:(at ) 
+ 
+ 
+	3E DB 9C 30
+ 
+3EDB9C30
+ 
+0018F184  30 9C DB 3E   F1 4E 8A D8   7C A7 6E B3  B9 82 BC BE  0œÛ>ñNŠØ|§n³¹‚¼¾
+0018F194  CB A6 72 99  52 5E FC 40  C5 A1 50 4A   5B B6 BD 94  Ë¦r™R^ü@Å¡PJ[¶½”
+0018F1A4  25 92 DD BD   6C 88 B2 EE   D5 3A 7C 46  AF A9 4A 56  %’Ý½lˆ²îÕ:|F¯©JV
+0018F1B4  B2 0F 05 0C 47 73 43 F9 E2 DD 27 47 9E 05 AE 3D  ².GsCùâÝ'Gž®=
+
+then it contains 
+
+0018F184  71 75 23 73 29 2F 41 E9 DB 14 AB 3B CD D2 D7 6B  qu#s)/AéÛ«;ÍÒ×k
+0018F194  93 0E 82 E4 17 27 AC 4D 32 EE 68 F2 74 76 60 20  “‚ä'¬M2îhòtv`
+0018F1A4  C1 FB 3D 8B 6F FD 13 54 C7 9A C9 B0 9A 57 A9 31  Áû=‹oýTÇšÉ°šW©1
+0018F1B4  74 0E BB 7A 00 45 BD 1E 84 45 2A 4E 7D 59 E4 88  t»z.E½„E*N}Yäˆ
+
+then:
+
+0018F184  BD 53 15 DF C1 8B 4F 4F 66 C1 A6 A3 76 C5 5B 7C  ½SßÁ‹OOfÁ¦£vÅ[|
+0018F194  41 F9 DB AD 1D AA 09 C5 B2 0F FA 53 E6 15 C3 94  AùÛ­ª.Å²úSæÃ”
+0018F1A4  13 B3 C2 7F 2B 7E 5B 24 4B 44 5A 3F B0 C7 BC CB  ³Â+~[$KDZ?°Ç¼Ë
+0018F1B4  0C C3 42 DE 6E 01 06 82 2D 5E 99 3F 7D 21 F4 79  .ÃBÞn‚-^™?}!ôy
+
+
+
+0018F184  71 10 F2 73 4B 51 FD B3 5B 27 66 68 2E F7 5F F0  qòsKQý³['fh.÷_ð
+0018F194  EE 11 DC 82 A7 CC 08 27 BB 5C D5 60 E6 68 86 0A  îÜ‚§Ì'»\Õ`æh†.
+0018F1A4  98 72 84 1B 71 81 DD 8B C3 9F 0D 79 61 FC 36 52  ˜r„qÝ‹ÃŸ.yaü6R
+0018F1B4  ED A0 92 5F 64 9A AF 08 F1 B2 56 DD 73 0B FB FF  í ’_dš¯ñ²VÝsûÿ
+
+
+
+
+0018F184  AB A8 12 02 00 00 00 00 BC F1 18 00 00 00 23 02  «¨....¼ñ...#
+0018F194  00 00 23 03 E0 F0 18 00 00 80 00 00 70 F2 18 00  ..#àð..€..pò.
+0018F1A4  F5 71 ED 77 64 72 96 00 FE FF FF FF D3 3C E9 77  õqíwdr–.þÿÿÿÓ<éw
+0018F1B4  FE 3C E9 77 40 00 00 00 58 00 00 00 AA A8 12 02  þ<éw@...X...ª¨
+
+
+img/char.png
+
+
+
+3EDB9C30
+
+
+0048E2E6 
+
+
+
+00486CCF
+
+
+
+from 0x3EDB9C30 we compute 
+ 0xD88A4EF1
+ 
+eax = 1
+ 
+ 
+MOV ESI,DWORD PTR DS:[EDX-8]   // esi is now 0x3EDB9C30
+MOV EDI,ESI     edi = esi
+SHR EDI,1E      edi >>>= 0x1E
+XOR EDI,ESI     edi ^= esi
+IMUL EDI,EDI,6C078965  edi *= 0x6C078965
+LEA ESI,DWORD PTR DS:[EDI+EAX]      esi = edi+eax 
+MOV EDI,ESI  edi = esi     
+SHR EDI,1E   edi >>>= 0x1E
+XOR EDI,ESI  edi ^= esi
+IMUL EDI,EDI,6C078965   edi *= 6C078965
+MOV DWORD PTR DS:[EDX-4],ESI   second = esi       
+
+
+
+
+
+
+
+LEA ESI,DWORD PTR DS:[EDI+EAX+6]	esi = edi+eax+6;
+MOV DWORD PTR DS:[EDX+14],ESI   	        ;  write! eight value
+

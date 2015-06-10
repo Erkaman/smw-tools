@@ -16,7 +16,7 @@ public class Decoder {
 
 		i = 0;
 	}
-
+	
 	private static void log(final String str) {
 		System.out.println("LOG: " + str);	
 	}
@@ -69,9 +69,7 @@ public class Decoder {
 
 	public int[] computeInitial() {
 
-
-
-		int[] initial = new int[0x270+1];
+		int[] initial = new int[0x270];
 
 		final int SEED = 0x3EDB9C30;
 
@@ -142,6 +140,111 @@ public class Decoder {
 		return initial;
 
 	}
+	
+	char getCL(final int ecx) {
+		return (char)(ecx & 0x000000FF);
+	}
+	
+	/**
+	 * Returns the new value of ecx. 
+	 * @param ecx
+	 * @param cl
+	 * @return
+	 */
+	int setCL(final int ecx, final char cl) {
+		return (cl  & 0x000000FF) | (ecx & 0xFFFFFF00);
+	}
+
+	void computeNextTable(int[] arr) {
+
+		char cl,cf;
+		int eax, ecx,edi, ebx, edx;
+
+		for(eax = 0, edx = 0; edx < 0x0E3; ++eax, ++edx) {
+
+			ecx = arr[eax+1];
+			edi = arr[eax+0];
+			ebx = arr[eax+0];
+			edi ^= ecx;
+			edi &= 0x7FFFFFFE;
+			edi ^= ebx;
+
+			ecx &= 0xFFFFFF01; // AND CL,1
+			edi >>>= 1;
+			
+			cl = getCL(ecx);
+			cf = (char)(cl == 0 ? 0 : 1);
+			ecx = setCL(ecx, (char)(-cl)); // NEG CL
+			ecx = ecx - (ecx+cl); // SBB ECX, ECX
+						
+			 ecx &= 0x9908B0DF;
+			 
+			 edi ^= ecx;
+			 
+			 edi ^= arr[eax+397];
+			
+			 arr[eax] = edi;
+		}
+		
+		for(edx = 0; edx < 0x18C; ++eax, ++edx) {
+			ecx = arr[eax+1];
+			edi = arr[eax+0];
+			ebx = arr[eax+0];
+			edi ^= ecx;
+			edi &= 0x7FFFFFFE;
+			edi ^= ebx;
+			
+			// in here array.
+			
+			ebx =  arr[eax-227];
+
+			
+			ecx &= 0xFFFFFF01; // AND CL,1
+			edi >>>= 1;
+			
+			cl = getCL(ecx);
+			cf = (char)(cl == 0 ? 0 : 1);
+			ecx = setCL(ecx, (char)(-cl)); // NEG CL
+			
+			ecx = ecx - (ecx+cl); // SBB ECX, ECX
+						
+			 ecx &= 0x9908B0DF;
+			 
+			 edi ^= ecx;
+			edi ^= ebx;
+			
+			arr[eax] = edi;
+		}
+
+		ecx = arr[0];
+		edx = arr[eax];
+		ebx = arr[eax];
+
+		edx ^= ecx;
+		edx &= 0x7FFFFFFE;	
+		edx ^= ebx;
+
+
+		ecx &= 0xFFFFFF01; // AND CL,1
+		edx >>>= 1;
+
+		cl = getCL(ecx);
+		cf = (char)(cl == 0 ? 0 : 1);
+		ecx = setCL(ecx, (char)(-cl)); // NEG CL
+		
+		
+		ecx = ecx - (ecx+cl); // SBB ECX, ECX
+
+
+		ecx &= 0x9908B0DF;
+		
+		edx ^= ecx;
+		
+		edx ^= arr[eax-227];
+		arr[eax] = edx;
+		
+		
+	}
 
 	public static void main(String [ ] args) throws IOException{
 		String s =  "../../Downloads/Super Marisa World/Img.dat";
@@ -150,9 +253,28 @@ public class Decoder {
 
 		int[] initial = decoder.computeInitial();
 
+		log("first array");
+		
+		
+		// C66EE2D6
 		for(int i = 0; i < initial.length; ++i) {
-			log("i: " + toHex(initial[i]));
+			log("i: " + i + " " + toHex(initial[i]));
 		}
+		
+		log("");
+		
+		decoder.computeNextTable(initial);
+		
+		log("second array");
+		
+		for(int i = 0; i < initial.length; ++i) {
+			log("i: " + i + " " + toHex(initial[i]));
+		}
+		
+		// last value should be 6A5F29BE. 
+		
+		System.exit(1);
+		
 
 		RandomAccessFile inputStream = new RandomAccessFile(s, "r");
 
@@ -168,6 +290,9 @@ public class Decoder {
 
 			log(toHex(decoded) + " " + decoded);
 		}
+		
+		
 
 	}
+	// to produce the second array we use the same technique, but the seed is instead 0x3EDB9C30
 }

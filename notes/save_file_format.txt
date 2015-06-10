@@ -189,7 +189,7 @@ initally it contains the array data:(at )
 
 then it contains 
 
-0018F184  71 75 23 73 29 2F 41 E9 DB 14 AB 3B CD D2 D7 6B  qu#s)/AéÛ«;ÍÒ×k
+0018F184  71 75 23 73  29 2F 41 E9  DB 14 AB 3B  CD D2 D7 6B  qu#s)/AéÛ«;ÍÒ×k
 0018F194  93 0E 82 E4 17 27 AC 4D 32 EE 68 F2 74 76 60 20  “‚ä'¬M2îhòtv`
 0018F1A4  C1 FB 3D 8B 6F FD 13 54 C7 9A C9 B0 9A 57 A9 31  Áû=‹oýTÇšÉ°šW©1
 0018F1B4  74 0E BB 7A 00 45 BD 1E 84 45 2A 4E 7D 59 E4 88  t»z.E½„E*N}Yäˆ
@@ -258,4 +258,42 @@ MOV DWORD PTR DS:[EDX-4],ESI   second = esi
 
 LEA ESI,DWORD PTR DS:[EDI+EAX+6]	esi = edi+eax+6;
 MOV DWORD PTR DS:[EDX+14],ESI   	        ;  write! eight value
+
+
+
+eax+634
+
+
+
+
+0018F7B8  D6 E2 6E C6 97 7C F6 B0 58 E5 FD FD 77 31 66 BE  ÖânÆ—|ö°Xåýýw1f¾
+0018F7C8  BA 21 FC 84 2A C7 8C F1 C0 85 3E 61 B9 0F 86 E7  º!ü„*ÇŒñÀ…>a¹†ç
+0018F7D8  F7 BF 64 FC DA 50 25 AE CF 7E E4 02 43 D0 AB 37  ÷¿düÚP%®Ï~äCÐ«7
+
+
+D6 E2 6E C6 97 7C F6 B0 58 E5 FD FD 77 31 66 BE
+
+
+ 0xB3ECF0A1
+ 
+ 
+ 
+ 
+MOV ECX,DWORD PTR DS:[EAX+4]    ecx = arr[1]
+MOV EDI,DWORD PTR DS:[EAX]      edi = arr[0]
+MOV EBX,DWORD PTR DS:[EAX]      ebx = arr[0]
+XOR EDI,ECX                     edi ^= ecx
+AND EDI,7FFFFFFE                edi ^= 0x7FFFFFFE
+XOR EDI,EBX                     edi ^= ebx
+AND CL,1			            ecx ^= 0xFFFFFF01
+SHR EDI,1						edi >>>= 1
+NEG CL							ecx = -((byte)(ecx & 0xFF)) & ecx
+SBB ECX,ECX                       if cl, was not zero, add an extra one. 
+AND ECX,9908B0DF                ecx &= 0x9908B0DF
+XOR EDI,ECX                     edi ^= ecx
+XOR EDI,DWORD PTR DS:[EAX+634]  edi ^= arr[397]        ;  edi contains the computed dword. wait, is this not simply the same array?
+MOV DWORD PTR DS:[EAX],EDI      arr[0] = edi        ;  set a dword in the array.
+ADD EAX,4                       iterate further
+DEC EDX                         increase i of for loop.
+JNZ SHORT SuperMar.0048B440
 

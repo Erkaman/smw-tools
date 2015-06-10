@@ -51,6 +51,8 @@ public class Main {
 		
 		imgDat.dumpAllFiles();
 		
+		Log.i("done");
+		
 	}
 }
 

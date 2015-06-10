@@ -25,7 +25,12 @@ public class ImgDat {
 		 SHIFT_JIS_CHARSET = Charset.availableCharsets().get("Shift_JIS");
 	}
 
-	private static final String IMG_DAT =  "../../Downloads/Super Marisa World/Img.dat";
+	private static final String IMG_DAT = 
+			//"../../Downloads/Super Marisa World/Data.dat";; 
+			"../../Downloads/Super Marisa World/Sound.dat";; 
+			//"../../Downloads/Super Marisa World/Music.dat";; 
+			
+			//"../../Downloads/Super Marisa World/Img.dat";
 	
 	private RandomAccessFile inputStream;
 	
@@ -163,6 +168,8 @@ public class ImgDat {
 	public void dumpAllFiles() throws IOException {
 		
 		for(FileTableEntry entry : fileTable) {
+			
+			Log.i("dumping " + entry.getFilename());
 
 			Decoder decoder = new Decoder(entry.seed);
 
@@ -171,9 +178,6 @@ public class ImgDat {
 			
 			OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(entry.getFilename()));
 			
-		//	long offset = 0x01CC87CA;
-			//inputStream.seek(offset);
-		
 			this.inputStream.seek(SEED + entry.offset);
 			
 			for(int i = 0; i <entry.size1; ++i) { // 0x5BB0
@@ -184,9 +188,10 @@ public class ImgDat {
 				
 				outputStream.write(decoded);
 			}
+			
 			outputStream.close();
 			
-			break;
+			//break;
 		}
 		
 	}

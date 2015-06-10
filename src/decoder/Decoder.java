@@ -131,8 +131,8 @@ public class Decoder {
 
 	}
 	
-	private static char getCL(final int ecx) {
-		return (char)(ecx & 0x000000FF);
+	private static byte getCL(final int ecx) {
+		return (byte)(ecx & 0x000000FF);
 	}
 	
 	/**
@@ -141,13 +141,13 @@ public class Decoder {
 	 * @param cl
 	 * @return
 	 */
-	private static int setCL(final int ecx, final char cl) {
+	private static int setCL(final int ecx, final byte cl) {
 		return (cl  & 0x000000FF) | (ecx & 0xFFFFFF00);
 	}
 
 	private static void computeNextTable(int[] arr) {
 
-		char cl,cf;
+		byte cl,cf;
 		int eax, ecx,edi, ebx, edx;
 
 		for(eax = 0, edx = 0; edx < 0x0E3; ++eax, ++edx) {
@@ -163,8 +163,8 @@ public class Decoder {
 			edi >>>= 1;
 			
 			cl = getCL(ecx);
-			cf = (char)(cl == 0 ? 0 : 1);
-			ecx = setCL(ecx, (char)(-cl)); // NEG CL
+			cf = (byte)(cl == 0 ? 0 : 1);
+			ecx = setCL(ecx, (byte)(-cl)); // NEG CL
 			ecx = ecx - (ecx+cl); // SBB ECX, ECX
 						
 			 ecx &= 0x9908B0DF;
@@ -193,8 +193,8 @@ public class Decoder {
 			edi >>>= 1;
 			
 			cl = getCL(ecx);
-			cf = (char)(cl == 0 ? 0 : 1);
-			ecx = setCL(ecx, (char)(-cl)); // NEG CL
+			cf = (byte)(cl == 0 ? 0 : 1);
+			ecx = setCL(ecx, (byte)(-cl)); // NEG CL
 			
 			ecx = ecx - (ecx+cl); // SBB ECX, ECX
 						
@@ -219,8 +219,8 @@ public class Decoder {
 		edx >>>= 1;
 
 		cl = getCL(ecx);
-		cf = (char)(cl == 0 ? 0 : 1);
-		ecx = setCL(ecx, (char)(-cl)); // NEG CL
+		cf = (byte)(cl == 0 ? 0 : 1);
+		ecx = setCL(ecx, (byte)(-cl)); // NEG CL
 		
 		
 		ecx = ecx - (ecx+cl); // SBB ECX, ECX

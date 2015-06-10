@@ -22,10 +22,13 @@ public class Main {
 
 		OutputStream outputStream = new BufferedOutputStream(new FileOutputStream("out.png"));
 		
+		
+		// char.png - 01cb6a9e
+		
 		long offset = 0x01CC87CA;
 		inputStream.seek(offset);
-
-		for(int i = 0; i <23472; ++i) {
+	
+		for(int i = 0; i <23472; ++i) { // 0x5BB0
 
 			final byte b = inputStream.readByte();	
 
@@ -39,19 +42,14 @@ public class Main {
 		inputStream.close();		
 	}
 	
-	
-	
-
-	
 	public static void main(String [ ] args) throws IOException{
 		readLogo();
 		
 		ImgDat imgDat = new ImgDat();
 		
 		Log.i(imgDat.toString());
-			
-		String s = "ウィキペディアは誰でも編集できるフリー百科事典です";
-		Log.i("s: "+ s);
+		
+		imgDat.dumpAllFiles();
 		
 	}
 }

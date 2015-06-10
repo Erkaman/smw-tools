@@ -1,36 +1,18 @@
 package decoder;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
 
 public class Decoder {
 
-	private char xorKeys[];
 	private int codeTable[];
 	private int codeTableI;
+	final int SEED;
 	
-	public Decoder() {
-		xorKeys = new char[]{0xA7, 0x7A, 0x7B, 0x50};
+	public Decoder(final int SEED) {this.SEED = SEED; }
 
-		//codeTable = new int[] {0x73237571, 0xE9412F29, 0x3BAB14DB, 0x6BD7D2CD};
-
-	}
-	
-	private static void log(final String str) {
-		System.out.println("LOG: " + str);	
-	}
-
-	private static String toHex(final int val) {
-		return String.format("%02X", val);
-	}
-
-	char computeXorKey() {
+	private char computeXorKey() {
 		
 		if(codeTable == null) {
-			codeTable = computeInitialCodeTable();
+			codeTable = computeInitialCodeTable(SEED);
 			codeTableI = codeTable.length;
 		}
 		
@@ -72,16 +54,14 @@ public class Decoder {
 		return (char)(eax & 0x000000FF);
 	}
 
-	private char decode(final char b) {
+	public char decode(final char b) {
 		char AL = computeXorKey();
 		return (char) (b ^ AL);
 	}
 
-	public static int[] computeInitialCodeTable() {
+	private static int[] computeInitialCodeTable(final int SEED) {
 
 		int[] initial = new int[0x270];
-
-		final int SEED = 0x3EDB9C30;
 
 		initial[0] = SEED;
 
@@ -103,7 +83,7 @@ public class Decoder {
 		edi *= 0x6C078965;
 
 		initial[eax+0] = esi;
-
+		
 
 		esi = edi+eax+1;		
 		edi = esi;		 
@@ -256,60 +236,4 @@ public class Decoder {
 		
 	}
 
-	public static void main(String [ ] args) throws IOException{
-		String s =  "../../Downloads/Super Marisa World/Img.dat";
-
-		Decoder decoder = new Decoder();
-
-		/*int[] initial = decoder.computeInitial();
-
-		log("first array");
-		
-		
-		// C66EE2D6
-		for(int i = 0; i < initial.length; ++i) {
-			log("i: " + i + " " + toHex(initial[i]));
-		}
-		
-		log("");
-		
-		decoder.computeNextTable(initial);
-		
-		log("second array");
-		
-		for(int i = 0; i < initial.length; ++i) {
-			log("i: " + i + " " + toHex(initial[i]));
-		}
-		
-		// last value should be 6A5F29BE. 
-		
-		System.exit(1);
-		*/
-
-		RandomAccessFile inputStream = new RandomAccessFile(s, "r");
-
-		OutputStream outputStream = new BufferedOutputStream(new FileOutputStream("out.png"));
-		
-		long offset = 0x01CC87CA;
-		inputStream.seek(offset);
-
-
-		for(int i = 0; i <23472; ++i) {
-
-			final char b = (char)inputStream.read();	
-
-			final char decoded = decoder.decode(b);
-			
-			outputStream.write(decoded);
-
-		//	log(toHex(decoded) + " " + decoded);
-		}
-		
-		outputStream.close();
-		inputStream.close();
-		
-		
-
-	}
-	// to produce the second array we use the same technique, but the seed is instead 0x3EDB9C30
 }

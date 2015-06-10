@@ -12,11 +12,9 @@ public class Main {
 	private static String toHex(final int val) {
 		return String.format("%02X", val);
 	}
-
-	private static final String IMG_DAT =  "../../Downloads/Super Marisa World/Img.dat";
 	
 	private static void readLogo() throws IOException {
-		String s = IMG_DAT;
+		String s =  "../../Downloads/Super Marisa World/Img.dat";
 
 		Decoder decoder = new Decoder(0x3EDB9C30);
 
@@ -29,9 +27,9 @@ public class Main {
 
 		for(int i = 0; i <23472; ++i) {
 
-			final char b = (char)inputStream.read();	
+			final byte b = inputStream.readByte();	
 
-			final char decoded = decoder.decode(b);
+			final byte decoded = decoder.decode(b);
 			
 			outputStream.write(decoded);
 
@@ -41,43 +39,19 @@ public class Main {
 		inputStream.close();		
 	}
 	
-	private static int readInt(final RandomAccessFile inputStream) throws IOException {
-		final byte b1 = inputStream.readByte();
-		final byte b2 = inputStream.readByte();
-		final byte b3 = inputStream.readByte();
-		final byte b4 = inputStream.readByte();
-			
-		return ((b4&0xFF) << 24) | ((b3&0xFF) << 16) | ((b2&0xFF) << 8) | (b1&0xFF);
-	}
 	
-	private static void readFileTable() throws IOException {
-		String s = IMG_DAT;
-		RandomAccessFile inputStream = new RandomAccessFile(s, "r");
+	
 
-		OutputStream outputStream = new BufferedOutputStream(new FileOutputStream("_filetable.dat"));
-		
-		final int SEED = readInt(inputStream);
-		
-		Decoder decoder = new Decoder(SEED);
-
-		for(int i = 0; i <SEED; ++i) {
-
-			final char b = (char)inputStream.read();	
-
-			final char decoded = decoder.decode(b);
-			
-			outputStream.write(decoded);
-//42 4b  b7 63
-		}
-		
-		outputStream.close();
-		inputStream.close();		
-	}
 	
 	public static void main(String [ ] args) throws IOException{
-	//	readLogo();
+		readLogo();
 		
-		readFileTable();
+		ImgDat imgDat = new ImgDat();
+		
+		Log.i(imgDat.toString());
+			
+		String s = "ウィキペディアは誰でも編集できるフリー百科事典です";
+		Log.i("s: "+ s);
 		
 	}
 }

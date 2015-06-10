@@ -54,9 +54,9 @@ public class Decoder {
 		return (char)(eax & 0x000000FF);
 	}
 
-	public char decode(final char b) {
+	public byte decode(final byte b) {
 		char AL = computeXorKey();
-		return (char) (b ^ AL);
+		return (byte) (b ^ AL);
 	}
 
 	private static int[] computeInitialCodeTable(final int SEED) {

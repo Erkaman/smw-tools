@@ -19,6 +19,8 @@ public class ImgDat {
 	
 	private final static Charset SHIFT_JIS_CHARSET;
 	
+	private int SEED;
+	
 	static {
 		 SHIFT_JIS_CHARSET = Charset.availableCharsets().get("Shift_JIS");
 	}
@@ -53,12 +55,12 @@ public class ImgDat {
 	}
 	
 	private void readFileTable() throws IOException {	
-		final int SEED = readInt(inputStream);
+		SEED = readInt(inputStream);
 		byte fileTableData[] = new byte[SEED];
 		
 		Decoder decoder = new Decoder(SEED);
 
-		for(int i = 0; i <SEED; ++i) {
+		for(int i = 0; i <(SEED-4); ++i) { // inclusive size. 
 
 			final byte b = inputStream.readByte();
 
@@ -97,7 +99,9 @@ public class ImgDat {
 			entry.size1 = toInt(fileTableData[dataI++],fileTableData[dataI++],fileTableData[dataI++],fileTableData[dataI++]);
 			entry.size2 = toInt(fileTableData[dataI++],fileTableData[dataI++],fileTableData[dataI++],fileTableData[dataI++]);
 			
-			dataI += 5;
+			entry.offset = toInt(fileTableData[dataI++],fileTableData[dataI++],fileTableData[dataI++],fileTableData[dataI++]);
+			
+			dataI += 1;
 			
 			/*
 			if(entry.size1 != entry.size2) {
@@ -116,6 +120,7 @@ public class ImgDat {
 		public byte[] filename;
 		public int size1; // we should probably use this one. 
 		public int size2; // we should probably ignore this one.
+		public int offset;
 		
 		public int seed;
 		
@@ -129,7 +134,12 @@ public class ImgDat {
 					"{filename:" + getFilename() +
 					", size1: " + size1 + 
 					", size2: " + size2 +  
+					
+					", offset: " + offset +  
+					
+					
 					", seed: " + Integer.toHexString(seed) +  
+					
 					
 					"}";
 		}
@@ -164,6 +174,8 @@ public class ImgDat {
 		//	long offset = 0x01CC87CA;
 			//inputStream.seek(offset);
 		
+			this.inputStream.seek(SEED + entry.offset);
+			
 			for(int i = 0; i <entry.size1; ++i) { // 0x5BB0
 
 				final byte b = inputStream.readByte();	
@@ -171,7 +183,6 @@ public class ImgDat {
 				final byte decoded = decoder.decode(b);
 				
 				outputStream.write(decoded);
-
 			}
 			outputStream.close();
 			

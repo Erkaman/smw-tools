@@ -22,7 +22,6 @@ public class Main {
 
 		OutputStream outputStream = new BufferedOutputStream(new FileOutputStream("out.png"));
 		
-		
 		// char.png - 01cb6a9e
 		
 		long offset = 0x01CC87CA;
@@ -49,13 +48,13 @@ public class Main {
 		
 		Log.i(imgDat.toString());
 		
-		imgDat.dumpAllFiles();
 		
-		Log.i("done");
+		imgDat.dumpDat("img.dat");
+		//imgDat.dumpAllFiles();
 		
+		Log.i("done");	
 	}
 }
-
 
 //size of the table is 0x0000812E
 

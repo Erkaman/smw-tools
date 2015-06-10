@@ -6,48 +6,35 @@ public class Decoder {
 	private int codeTable[];
 	private int codeTableI;
 	final int SEED;
-	
+
 	public Decoder(final int SEED) {this.SEED = SEED; }
 
 	private char computeXorKey() {
-		
+
 		if(codeTable == null) {
 			codeTable = computeInitialCodeTable(SEED);
 			codeTableI = codeTable.length;
 		}
-		
+
 		if(codeTableI == codeTable.length) {
 			computeNextTable(codeTable);
 			codeTableI = 0;
 		}
-		
-		int ecx, eax, edx;
+
+		int ecx, eax;
 
 		ecx = codeTable[codeTableI++];
-		eax = ecx;
-		eax >>>= 0x0B  ;  
+		eax = ecx >>> 0x0B;
 
 		ecx ^= eax;
 
-		edx = ecx;
+		ecx ^= ((ecx & 0xFF3A58AD) << 7);
 
-		edx &=  0xFF3A58AD;
-
-		edx <<= 7;
-
-		ecx ^= edx;
-
-		eax = ecx;
-
-		eax &= 0xFFFFDF8C;
-
-		eax <<= 0x0F;
+		eax = (ecx & 0xFFFFDF8C) << 0x0F;
 
 		ecx ^= eax;
 
-		eax = ecx;
-
-		eax >>>= 0x12;
+		eax = ecx >>> 0x12;
 
 		eax ^= ecx;     
 
@@ -72,7 +59,7 @@ public class Decoder {
 
 			int edi = esi;
 			edi >>>= 0x1E;
-
+		
 		edi ^= esi;	
 		edi *= 0x6C078965;
 
@@ -83,7 +70,7 @@ public class Decoder {
 		edi *= 0x6C078965;
 
 		initial[eax+0] = esi;
-		
+
 
 		esi = edi+eax+1;		
 		edi = esi;		 
@@ -130,11 +117,11 @@ public class Decoder {
 		return initial;
 
 	}
-	
+
 	private static byte getCL(final int ecx) {
 		return (byte)(ecx & 0x000000FF);
 	}
-	
+
 	/**
 	 * Returns the new value of ecx. 
 	 * @param ecx
@@ -151,7 +138,7 @@ public class Decoder {
 		int eax, ecx,edi, ebx, edx;
 
 		for(eax = 0, edx = 0; edx < 0x0E3; ++eax, ++edx) {
-			
+
 			ecx = arr[eax+1];
 			edi = arr[eax+0];
 			ebx = arr[eax+0];
@@ -161,21 +148,21 @@ public class Decoder {
 
 			ecx &= 0xFFFFFF01; // AND CL,1
 			edi >>>= 1;
-			
+
 			cl = getCL(ecx);
 			cf = (byte)(cl == 0 ? 0 : 1);
 			ecx = setCL(ecx, (byte)(-cl)); // NEG CL
 			ecx = ecx - (ecx+cl); // SBB ECX, ECX
-						
-			 ecx &= 0x9908B0DF;
-			 
-			 edi ^= ecx;
-			 
-			 edi ^= arr[eax+397];
-			
-			 arr[eax] = edi;
+
+			ecx &= 0x9908B0DF;
+
+			edi ^= ecx;
+
+			edi ^= arr[eax+397];
+
+			arr[eax] = edi;
 		}
-		
+
 		for(edx = 0; edx < 0x18C; ++eax, ++edx) {
 			ecx = arr[eax+1];
 			edi = arr[eax+0];
@@ -183,26 +170,26 @@ public class Decoder {
 			edi ^= ecx;
 			edi &= 0x7FFFFFFE;
 			edi ^= ebx;
-			
+
 			// in here array.
-			
+
 			ebx =  arr[eax-227];
 
-			
+
 			ecx &= 0xFFFFFF01; // AND CL,1
 			edi >>>= 1;
-			
+
 			cl = getCL(ecx);
 			cf = (byte)(cl == 0 ? 0 : 1);
 			ecx = setCL(ecx, (byte)(-cl)); // NEG CL
-			
+
 			ecx = ecx - (ecx+cl); // SBB ECX, ECX
-						
-			 ecx &= 0x9908B0DF;
-			 
-			 edi ^= ecx;
+
+			ecx &= 0x9908B0DF;
+
+			edi ^= ecx;
 			edi ^= ebx;
-			
+
 			arr[eax] = edi;
 		}
 
@@ -221,19 +208,15 @@ public class Decoder {
 		cl = getCL(ecx);
 		cf = (byte)(cl == 0 ? 0 : 1);
 		ecx = setCL(ecx, (byte)(-cl)); // NEG CL
-		
-		
+
+
 		ecx = ecx - (ecx+cl); // SBB ECX, ECX
 
-
 		ecx &= 0x9908B0DF;
-		
+
 		edx ^= ecx;
-		
+
 		edx ^= arr[eax-227];
 		arr[eax] = edx;
-		
-		
 	}
-
 }

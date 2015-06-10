@@ -1,9 +1,13 @@
 package decoder;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
@@ -19,6 +23,8 @@ public class ImgDat {
 	
 	private final static Charset SHIFT_JIS_CHARSET;
 	
+	private final static int FILE_TABLE_MAGIC_LENGTH = 128;
+	
 	private int SEED;
 	
 	static {
@@ -27,15 +33,15 @@ public class ImgDat {
 
 	private static final String IMG_DAT = 
 			//"../../Downloads/Super Marisa World/Data.dat";; 
-			"../../Downloads/Super Marisa World/Sound.dat";; 
+			//"../../Downloads/Super Marisa World/Sound.dat";; 
 			//"../../Downloads/Super Marisa World/Music.dat";; 
 			
-			//"../../Downloads/Super Marisa World/Img.dat";
+			"../../Downloads/Super Marisa World/Img.dat";
 	
 	private RandomAccessFile inputStream;
 	
 	private List<FileTableEntry> fileTable;
-	private String fileTableMagic;
+	private byte[] fileTableMagic;
 	
 	public ImgDat() throws IOException {
 		
@@ -54,9 +60,21 @@ public class ImgDat {
 		return toInt(b1,b2,b3,b4);
 	}
 	
-	private static int toInt(final byte b1, final byte b2, final byte b3, final byte b4) throws IOException {
+	private static int toInt(final byte b1, final byte b2, final byte b3, final byte b4) {
 		
 		return ((b4&0xFF) << 24) | ((b3&0xFF) << 16) | ((b2&0xFF) << 8) | (b1&0xFF);
+	}
+	
+	private static byte[] toBytes(final int i) {
+		
+		byte[] bytes = new byte[4];
+		
+		bytes[3] =(byte)((i >> 24) & 0xFF);
+		bytes[2] = (byte)((i >> 16) & 0xFF);
+		bytes[1] = (byte)((i >> 8) & 0xFF);
+		bytes[0] = (byte)((i) & 0xFF);
+		
+		return bytes;
 	}
 	
 	private void readFileTable() throws IOException {	
@@ -76,12 +94,12 @@ public class ImgDat {
 		
 		int dataI = 0;
 		
-		this.fileTableMagic = "";
+		fileTableMagic = new byte[FILE_TABLE_MAGIC_LENGTH];
 		
 		this.fileTable = new ArrayList<FileTableEntry>();
 		
 		for(; dataI < 128; ++dataI ) {
-			fileTableMagic += fileTableData[dataI];
+			fileTableMagic[dataI] += fileTableData[dataI];
 		}
 		
 		while(dataI < fileTableData.length-10) {
@@ -106,8 +124,9 @@ public class ImgDat {
 			
 			entry.offset = toInt(fileTableData[dataI++],fileTableData[dataI++],fileTableData[dataI++],fileTableData[dataI++]);
 			
-			dataI += 1;
+			entry.magic = fileTableData[dataI++];
 			
+
 			/*
 			if(entry.size1 != entry.size2) {
 				Log.i("WTF: " + entry.getFilename());		
@@ -126,26 +145,36 @@ public class ImgDat {
 		public int size1; // we should probably use this one. 
 		public int size2; // we should probably ignore this one.
 		public int offset;
-		
+		public byte magic;
 		public int seed;
 		
 		public String getFilename() {
 			return new String(filename, SHIFT_JIS_CHARSET);
 		}
 		
+		public void writeToStream(final OutputStream outputStream) throws IOException {
+	
+			outputStream.write(filename);
+			outputStream.write( '\0'); // terminate the string with null.
+			
+			outputStream.write(toBytes(size1));
+			outputStream.write(toBytes(size2));
+			outputStream.write(toBytes(offset));
+			outputStream.write(magic);
+			outputStream.write(toBytes(seed));
+		}
+		
+		
+		
 		public String toString() {
 			
 			return 
 					"{filename:" + getFilename() +
 					", size1: " + size1 + 
-					", size2: " + size2 +  
-					
+					", size2: " + size2 +  				
 					", offset: " + offset +  
-					
-					
-					", seed: " + Integer.toHexString(seed) +  
-					
-					
+					", magic: " + magic +  		
+					", seed: " + Integer.toHexString(seed) +  	
 					"}";
 		}
 	}
@@ -193,6 +222,64 @@ public class ImgDat {
 			
 			//break;
 		}
+		
+	}
+	
+	public void dumpDat(final String filename) throws IOException {
+		OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(filename));
+		
+		
+		Decoder decoder = new Decoder(SEED);
+		
+		outputStream.write(toBytes(SEED));
+		
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		
+		byteArrayOutputStream.write(fileTableMagic);
+		
+		for(FileTableEntry entry : fileTable) {
+			entry.writeToStream(byteArrayOutputStream);			
+		}
+		
+		byte[] out = byteArrayOutputStream.toByteArray();
+		
+		for(byte b : out) { // inclusive size. 
+			final byte encoded = decoder.decode(b);
+			
+			outputStream.write(encoded	);
+		}
+		
+		
+		for(FileTableEntry entry : fileTable) {
+			
+			final int seed = entry.seed;
+			
+			decoder = new Decoder(seed);
+			
+			Log.i("encoding file: " + entry.getFilename());
+			
+			final InputStream inputStream = new BufferedInputStream(new FileInputStream(entry.getFilename()));
+
+			while(true) {
+				int i = inputStream.read();
+				
+				if(i == -1)
+					break;
+				
+				byte b = (byte)i;
+				
+			//	Log.i("enc: " + b);
+				
+				final byte encoded = decoder.decode(b);
+				
+				outputStream.write(encoded);
+			
+			}
+			inputStream.close();
+				
+		}
+
+		outputStream.close();
 		
 	}
 	

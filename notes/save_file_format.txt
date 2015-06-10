@@ -297,3 +297,116 @@ ADD EAX,4                       iterate further
 DEC EDX                         increase i of for loop.
 JNZ SHORT SuperMar.0048B440
 
+
+
+MOV ECX,DWORD PTR DS:[EAX+4]     
+MOV EDI,DWORD PTR DS:[EAX]	    
+MOV EBX,DWORD PTR DS:[EAX]      
+XOR EDI,ECX                    
+AND EDI,7FFFFFFE           
+XOR EDI,EBX
+MOV EBX,DWORD PTR DS:[EAX-38C]
+AND CL,1
+SHR EDI,1
+NEG CL
+SBB ECX,ECX
+AND ECX,9908B0DF
+XOR EDI,ECX
+XOR EDI,EBX
+MOV DWORD PTR DS:[EAX],EDI               ;  here!
+ADD EAX,4
+DEC EDX                                  ;  end loop
+
+
+
+
+
+XOR EDX,ECX							edx ^= ecx
+AND EDX,7FFFFFFE					edx &= 7FFFFFFE
+XOR EDX,EBX							edx ^= ebx
+AND CL,1							
+SHR EDX,1
+NEG CL
+POP EDI
+POP ESI
+POP EBX
+SBB ECX,ECX
+AND ECX,9908B0DF
+XOR EDX,ECX
+XOR EDX,DWORD PTR DS:[EAX-38C]
+MOV DWORD PTR DS:[EAX],EDX               ;  here!
+
+
+
+
+
+	/*	ecx = arr[0];
+		edx = arr[eax];
+		ebx = arr[eax];
+
+		edx ^= ecx;
+		edx &= 0x7FFFFFFE;	
+		edx ^= ebx;
+
+
+		ecx &= 0xFFFFFF01; // AND CL,1
+		edx >>>= 1;
+
+		cl = getCL(ecx);
+		cf = (char)(cl == 0 ? 0 : 1);
+		ecx = setCL(ecx, (char)(-cl)); // NEG CL
+		
+		
+		ecx = ecx - (ecx+cl); // SBB ECX, ECX
+
+
+		ecx &= 0x9908B0DF;
+		
+		edx ^= ecx;
+		
+		edx ^= arr[eax-227];
+		arr[eax] = edx;*/
+
+
+
+
+		
+cliff_grass_die.png
+
+
+02247C50  B7 56 6F B3 74 40 A7 38 B5 73 AE 19 F8 28 8A EC  ·Vo³t@§8µs®ø(Šì
+
+2E 81 00 00               
+
+
+
+2e 81 00 00 
+27 95 96 35 shouldb first elemtns. 
+
+
+
+the last element is the seed. 
+
+
+640 = 0x280 is the width of the image. 
+
+480 = 0x1E0 is the height. 
+
+0x5BB0 is the size of the file.                    
+
+
+char.png
+02F03C10  9F DB 41 37 3F DC 3A D1 F7 A9 72 7B CB 2C 04 81  ŸÛA7?Ü:Ñ÷©r{Ë,
+at 01cb6a9e
+
+CA 87 CC 01
+
+
+
+
+
+[98, 51, 48, 101, 57, 98,
+
+
+9C 06 CC 01 is the index to the file. it is added to some other number. 
+

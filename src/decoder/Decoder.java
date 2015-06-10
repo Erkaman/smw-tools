@@ -1,20 +1,22 @@
 package decoder;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 
 public class Decoder {
 
 	private char xorKeys[];
 	private int codeTable[];
-	private int i;
-
+	private int codeTableI;
+	
 	public Decoder() {
 		xorKeys = new char[]{0xA7, 0x7A, 0x7B, 0x50};
 
-		codeTable = new int[] {0x73237571, 0xE9412F29, 0x3BAB14DB, 0x6BD7D2CD};
+		//codeTable = new int[] {0x73237571, 0xE9412F29, 0x3BAB14DB, 0x6BD7D2CD};
 
-		i = 0;
 	}
 	
 	private static void log(final String str) {
@@ -26,9 +28,20 @@ public class Decoder {
 	}
 
 	char computeXorKey() {
+		
+		if(codeTable == null) {
+			codeTable = computeInitialCodeTable();
+			codeTableI = codeTable.length;
+		}
+		
+		if(codeTableI == codeTable.length) {
+			computeNextTable(codeTable);
+			codeTableI = 0;
+		}
+		
 		int ecx, eax, edx;
 
-		ecx = codeTable[i++];
+		ecx = codeTable[codeTableI++];
 		eax = ecx;
 		eax >>>= 0x0B  ;  
 
@@ -61,13 +74,10 @@ public class Decoder {
 
 	private char decode(final char b) {
 		char AL = computeXorKey();
-
-		//log("AL: " + AL);
-
 		return (char) (b ^ AL);
 	}
 
-	public int[] computeInitial() {
+	public static int[] computeInitialCodeTable() {
 
 		int[] initial = new int[0x270];
 
@@ -141,7 +151,7 @@ public class Decoder {
 
 	}
 	
-	char getCL(final int ecx) {
+	private static char getCL(final int ecx) {
 		return (char)(ecx & 0x000000FF);
 	}
 	
@@ -151,17 +161,17 @@ public class Decoder {
 	 * @param cl
 	 * @return
 	 */
-	int setCL(final int ecx, final char cl) {
+	private static int setCL(final int ecx, final char cl) {
 		return (cl  & 0x000000FF) | (ecx & 0xFFFFFF00);
 	}
 
-	void computeNextTable(int[] arr) {
+	private static void computeNextTable(int[] arr) {
 
 		char cl,cf;
 		int eax, ecx,edi, ebx, edx;
 
 		for(eax = 0, edx = 0; edx < 0x0E3; ++eax, ++edx) {
-
+			
 			ecx = arr[eax+1];
 			edi = arr[eax+0];
 			ebx = arr[eax+0];
@@ -251,7 +261,7 @@ public class Decoder {
 
 		Decoder decoder = new Decoder();
 
-		int[] initial = decoder.computeInitial();
+		/*int[] initial = decoder.computeInitial();
 
 		log("first array");
 		
@@ -274,22 +284,29 @@ public class Decoder {
 		// last value should be 6A5F29BE. 
 		
 		System.exit(1);
-		
+		*/
 
 		RandomAccessFile inputStream = new RandomAccessFile(s, "r");
 
+		OutputStream outputStream = new BufferedOutputStream(new FileOutputStream("out.png"));
+		
 		long offset = 0x01CC87CA;
 		inputStream.seek(offset);
 
 
-		for(int i = 0; i <4; ++i) {
+		for(int i = 0; i <23472; ++i) {
 
 			final char b = (char)inputStream.read();	
 
 			final char decoded = decoder.decode(b);
+			
+			outputStream.write(decoded);
 
-			log(toHex(decoded) + " " + decoded);
+		//	log(toHex(decoded) + " " + decoded);
 		}
+		
+		outputStream.close();
+		inputStream.close();
 		
 		
 

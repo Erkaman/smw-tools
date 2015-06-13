@@ -10,11 +10,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Decoder for ImgDat File. 
@@ -23,45 +26,101 @@ import java.util.List;
  */
 public class Archive {
 
-	private final static Charset SHIFT_JIS_CHARSET;
-	private final static int FILE_TABLE_HASH_SIZE = 128; // the size of the file table hash in bytes.
-
-	static {
-		SHIFT_JIS_CHARSET = Charset.availableCharsets().get("Shift_JIS");
-	}
-
 	private static final String IMG_DAT = 
-			//"../../Downloads/Super Marisa World/Data.dat";; 
+		//	"../../Downloads/Super Marisa World/Data.dat";; 
 			//"../../Downloads/Super Marisa World/Sound.dat";; 
 			//"../../Downloads/Super Marisa World/Music.dat";; 
 
 			"../../Downloads/Super Marisa World/Img.dat";
 
-	//private RandomAccessFile inputStream;
-	//private int SEED;
-	//private List<FileTableEntry> fileTable;
-
 	public static void unpack() throws IOException, NoSuchAlgorithmException {	
-		RandomAccessFile inputStream = new RandomAccessFile( IMG_DAT, "r");
-		List<FileTableEntry> fileTable = readFileTable(inputStream);
-
+		final RandomAccessFile inputStream = new RandomAccessFile( IMG_DAT, "r");
+		final FileTable fileTable = readFileTable(inputStream);
 		
-		String str = "";
-
-		//str += this.fileTableHash + "\n";
-
-		for (FileTableEntry s : fileTable)
-		{
-		    str += s + "\n";
-		}
+		Log.i(fileTable.toString());
 		
-		Log.i(str);
-
-		dumpDat("Img.dat", fileTable);
+	//	dumpDat("Img.dat", fileTable);
 		
 	//	dumpAllFiles(inputStream, fileTable);
-
 	}
+	
+	public static void pack() throws NoSuchAlgorithmException, IOException {	
+		
+		final String prefix = "Img\\";
+		List<String> files = Util.getAllFiles(prefix);
+		
+		
+		int beg = -1;
+		
+		// remove the beginning of the path
+		for(int i = 0; i < files.size(); ++i) {
+			String str = files.get(i);
+			
+			if(beg == -1) {
+				beg = str.indexOf(prefix);
+			}
+			
+			files.set(i, str.substring(beg));
+		}
+		Collections.sort(files);
+		
+		List<FileTableEntry> fileTableList = new ArrayList<FileTableEntry>();
+		
+		Random rng = new Random();
+		
+		int offset = 0;
+		for(final String file : files) {
+			FileTableEntry entry = new FileTableEntry();
+			
+			byte[] filenameBytes = file.getBytes("Shift_JIS");
+			
+			entry.filename = new byte[filenameBytes.length];
+			int i = 0;
+			for(byte b : filenameBytes) {
+				entry.filename[i++] = b;
+			}
+			
+			final int filesize = (int)new File(file).length();
+			
+			entry.size1 = filesize;
+			entry.size2 = filesize;
+			
+			entry.offset = offset;
+			
+			if(offset == 0x1ced0f2) {
+				Log.i("haro");
+			}
+			
+			offset += filesize;
+			
+			entry.magic = computeMagic(entry.filename);
+			entry.seed = rng.nextInt();
+			
+			
+			fileTableList.add(entry);
+		}
+		
+		FileTable fileTable = new FileTable(fileTableList);
+		
+		//Log.i(fileTable.toString());
+		
+		dumpDat("Img.dat", fileTable);
+	}
+	
+	private static byte computeMagic(byte[] filename) {
+		final int LEN = filename.length;
+		
+		return
+				filename[LEN-1] == (byte)'b'  &&
+				filename[LEN-2] == (byte)'d'  &&			
+				filename[LEN-3] == (byte)'.'
+								
+			
+				? (byte)0  : (byte)1;
+		
+	}
+		
+	
 
 	private static int readInt(final RandomAccessFile inputStream) throws IOException {
 		final byte b1 = inputStream.readByte();
@@ -77,17 +136,6 @@ public class Archive {
 		return ((b4&0xFF) << 24) | ((b3&0xFF) << 16) | ((b2&0xFF) << 8) | (b1&0xFF);
 	}
 
-	private static byte[] toBytes(final int i) {
-
-		byte[] bytes = new byte[4];
-
-		bytes[3] =(byte)((i >> 24) & 0xFF);
-		bytes[2] = (byte)((i >> 16) & 0xFF);
-		bytes[1] = (byte)((i >> 8) & 0xFF);
-		bytes[0] = (byte)((i) & 0xFF);
-
-		return bytes;
-	}
 
 	private static String hashToHexString(byte[] hashBytes) {
 		StringBuffer sb = new StringBuffer();
@@ -107,7 +155,7 @@ public class Archive {
 
 	}
 
-	private static List<FileTableEntry> readFileTable(final RandomAccessFile inputStream) throws IOException, NoSuchAlgorithmException {	
+	private static FileTable readFileTable(final RandomAccessFile inputStream) throws IOException, NoSuchAlgorithmException {	
 		// first read the seed and, at the same time, table name. 
 		final int SEED = readInt(inputStream);
 		
@@ -125,7 +173,7 @@ public class Archive {
 
 
 		// the hash of the file table.
-		byte[] fileTableHash = new byte[FILE_TABLE_HASH_SIZE];
+		byte[] fileTableHash = new byte[FileTable.HASH_SIZE];
 
 		List<FileTableEntry>  fileTable = new ArrayList<FileTableEntry>();
 		fileTable = new ArrayList<FileTableEntry>();
@@ -138,8 +186,8 @@ public class Archive {
 
 
 		// compute the file table hash.
-		int fileTableSize = fileTableData.length - FILE_TABLE_HASH_SIZE;
-		String computedHash = computeHash(fileTableData, FILE_TABLE_HASH_SIZE, fileTableSize);
+		int fileTableSize = fileTableData.length - FileTable.HASH_SIZE;
+		String computedHash = computeHash(fileTableData, FileTable.HASH_SIZE, fileTableSize);
 
 		// now compare with the hash stored in the file.
 		if(!computedHash.equals(new String(fileTableHash))) {
@@ -172,93 +220,12 @@ public class Archive {
 			fileTable.add(entry);
 		}
 
-		return fileTable;
+		return new FileTable(fileTable, SEED);
 	}
 
-	private static class FileTableEntry {
+	private static void dumpAllFiles(final RandomAccessFile inputStream, final FileTable fileTable) throws IOException {
 
-		public byte[] filename;
-		public int size1; // we should probably use this one. 
-		public int size2; // we should probably ignore this one.
-		public int offset;
-		public byte magic;
-		public int seed;
-
-		public String getFilename() {
-			return new String(filename, SHIFT_JIS_CHARSET);
-		}
-		
-		/**
-		 * Gets the size in bytes of this entry.
-		 * @return
-		 */
-		public int getSize() {
-			return
-					filename.length + 1 + // plus null-terminator
-					4 + // size1
-					4 + // size2
-					4 + //offset
-					1 + // magic
-					4; // seed
-			
-		}
-		
-		public void writeToStream(final OutputStream outputStream) throws IOException {
-
-			outputStream.write(filename);
-			outputStream.write( '\0'); // terminate the string with null.
-
-			outputStream.write(toBytes(size1));
-			outputStream.write(toBytes(size2));
-			outputStream.write(toBytes(offset));
-			outputStream.write(magic);
-			outputStream.write(toBytes(seed));
-		}
-
-		public String toString() {
-
-			return 
-					"{filename:" + getFilename() +
-					", size1: " + size1 + 
-					", size2: " + size2 +  				
-					", offset: " + Integer.toHexString(offset) +  
-					", magic: " + magic +  		
-					", seed: " + Integer.toHexString(seed) +  	
-					"}";
-		}
-	}
-
-	/*public String toString() {
-
-		String str = "";
-
-		//str += this.fileTableHash + "\n";
-
-		for (FileTableEntry s : fileTable)
-		{
-		    str += s + "\n";
-		}
-
-		return str;
-
-	}*/
-	
-	private static int computeSeed(final List<FileTableEntry> fileTable) {
-		
-		int seed = 4; // the seed is counted in the size.
-		
-		seed += FILE_TABLE_HASH_SIZE;
-		
-		for(FileTableEntry entry : fileTable) {
-			seed += entry.getSize();
-		}
-		
-		return seed;
-	}
-
-	private static void dumpAllFiles(final RandomAccessFile inputStream, final List<FileTableEntry> fileTable) throws IOException {
-
-		final int SEED = computeSeed(fileTable);
+		final int SEED = fileTable.getSeed();
 		
 		for(FileTableEntry entry : fileTable) {
 
@@ -287,15 +254,14 @@ public class Archive {
 	}
 
 	
-	private static void dumpDat(final String filename, List<FileTableEntry> fileTable) throws IOException, NoSuchAlgorithmException {
+	private static void dumpDat(final String filename, final FileTable fileTable) throws IOException, NoSuchAlgorithmException {
 		OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(filename));
 
-		final int SEED = computeSeed(fileTable);
-		
+		final int SEED = fileTable.getSeed();
 		
 		Decoder decoder = new Decoder(SEED);
 
-		outputStream.write(toBytes(SEED));
+		outputStream.write(Util.toBytes(SEED));
 
 		ByteArrayOutputStream fileTableOutputStream = new ByteArrayOutputStream();
 

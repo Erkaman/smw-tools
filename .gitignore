@@ -1,3 +1,9 @@
 .settings
 bin/
 *.class
+*.dat
+*.png
+Data/
+Img/
+Music/
+Sound/

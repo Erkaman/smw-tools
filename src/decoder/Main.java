@@ -45,11 +45,13 @@ public class Main {
 	public static void main(String [ ] args) throws IOException, NoSuchAlgorithmException{
 		readLogo();
 		
-		ImgDat imgDat = new ImgDat();
+		//Archive imgDat = new Archive();
 		
-		Log.i(imgDat.toString());
+		//Log.i(imgDat.toString());
 		
-		imgDat.dumpDat("Img.dat");
+		Archive.unpack();
+		
+	//	imgDat.dumpDat("Img.dat");
 		//imgDat.dumpAllFiles();
 		
 		Log.i("done");	

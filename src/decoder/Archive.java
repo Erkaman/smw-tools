@@ -27,11 +27,11 @@ import java.util.Random;
 public class Archive {
 
 	private static final String IMG_DAT = 
-		//	"../../Downloads/Super Marisa World/Data.dat";; 
+			"../../Downloads/Super Marisa World/Data.dat";; 
 			//"../../Downloads/Super Marisa World/Sound.dat";; 
 			//"../../Downloads/Super Marisa World/Music.dat";; 
 
-			"../../Downloads/Super Marisa World/Img.dat";
+		//	"../../Downloads/Super Marisa World/Img.dat";
 
 	public static void unpack() throws IOException, NoSuchAlgorithmException {	
 		final RandomAccessFile inputStream = new RandomAccessFile( IMG_DAT, "r");

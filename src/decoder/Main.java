@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.security.NoSuchAlgorithmException;
 
 public class Main {
 	
@@ -41,15 +42,14 @@ public class Main {
 		inputStream.close();		
 	}
 	
-	public static void main(String [ ] args) throws IOException{
+	public static void main(String [ ] args) throws IOException, NoSuchAlgorithmException{
 		readLogo();
 		
 		ImgDat imgDat = new ImgDat();
 		
 		Log.i(imgDat.toString());
 		
-		
-		imgDat.dumpDat("img.dat");
+		imgDat.dumpDat("Img.dat");
 		//imgDat.dumpAllFiles();
 		
 		Log.i("done");	

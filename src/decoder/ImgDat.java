@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,9 +43,9 @@ public class ImgDat {
 	private RandomAccessFile inputStream;
 	
 	private List<FileTableEntry> fileTable;
-	private byte[] fileTableMagic;
+	private byte[] fileTableHash;
 	
-	public ImgDat() throws IOException {
+	public ImgDat() throws IOException, NoSuchAlgorithmException {
 		
 		this.inputStream = new RandomAccessFile( IMG_DAT, "r");
 
@@ -77,9 +79,17 @@ public class ImgDat {
 		return bytes;
 	}
 	
-	private void readFileTable() throws IOException {	
+	private static String hashToHexString(byte[] hashBytes) {
+		StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < hashBytes.length; i++) {
+          sb.append(Integer.toString((hashBytes[i] & 0xff) + 0x100, 16).substring(1));
+        }
+        return sb.toString();
+	}
+	
+	private void readFileTable() throws IOException, NoSuchAlgorithmException {	
 		SEED = readInt(inputStream);
-		byte fileTableData[] = new byte[SEED];
+		byte fileTableData[] = new byte[SEED-4];
 		
 		Decoder decoder = new Decoder(SEED);
 
@@ -94,13 +104,66 @@ public class ImgDat {
 		
 		int dataI = 0;
 		
-		fileTableMagic = new byte[FILE_TABLE_MAGIC_LENGTH];
+		/*Log.i("lorem ipsum: " + fileTableData[FILE_TABLE_MAGIC_LENGTH]);
+		
+		Log.i("lorem ipsum: " + fileTableData[fileTableData.length-1]);
+		Log.i("lorem ipsum: " + fileTableData[fileTableData.length-2]);
+		Log.i("lorem ipsum: " + fileTableData[fileTableData.length-3]);
+		
+		
+		
+		 MessageDigest md = MessageDigest.getInstance("SHA-512");
+		
+		Log.i("lorem ipsum: " + fileTableData[FILE_TABLE_MAGIC_LENGTH+fileTableSize-1]);
+		
+
+		md.update( fileTableData, FILE_TABLE_MAGIC_LENGTH, fileTableSize);
+		 
+	
+		byte[] mdbytes =md.digest();
+		
+		StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < mdbytes.length; i++) {
+          sb.append(Integer.toString((mdbytes[i] & 0xff) + 0x100, 16).substring(1));
+        }
+ 
+        System.out.println("Hex format : " + sb.toString());
+ */
+	
+		  
+		
+		//System.exit(1);
+		
+		
+		fileTableHash = new byte[FILE_TABLE_MAGIC_LENGTH];
 		
 		this.fileTable = new ArrayList<FileTableEntry>();
 		
 		for(; dataI < 128; ++dataI ) {
-			fileTableMagic[dataI] += fileTableData[dataI];
+			fileTableHash[dataI] += fileTableData[dataI];
 		}
+		
+		String hash = new String(fileTableHash);
+		
+		Log.i("hash: "  + hash);
+		
+		
+		// verify the hash.
+		
+		
+		 MessageDigest md = MessageDigest.getInstance("SHA-512");
+			
+		 int fileTableSize = fileTableData.length - FILE_TABLE_MAGIC_LENGTH;
+			
+		
+		 md.update( fileTableData, FILE_TABLE_MAGIC_LENGTH, fileTableSize);
+		 byte[] computedHashBytes =md.digest();
+		 
+	
+		 if(!hashToHexString(computedHashBytes).equals(new String(fileTableHash))) {
+			 Log.i("wrong hash: " + hashToHexString(computedHashBytes));
+			 System.exit(1);
+		 }
 		
 		while(dataI < fileTableData.length-10) {
 			
@@ -172,7 +235,7 @@ public class ImgDat {
 					"{filename:" + getFilename() +
 					", size1: " + size1 + 
 					", size2: " + size2 +  				
-					", offset: " + offset +  
+					", offset: " + Integer.toHexString(offset) +  
 					", magic: " + magic +  		
 					", seed: " + Integer.toHexString(seed) +  	
 					"}";
@@ -183,7 +246,7 @@ public class ImgDat {
 		
 		String str = "";
 		
-		str += this.fileTableMagic + "\n";
+		str += this.fileTableHash + "\n";
 			
 		for (FileTableEntry s : fileTable)
 		{
@@ -235,7 +298,8 @@ public class ImgDat {
 		
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 		
-		byteArrayOutputStream.write(fileTableMagic);
+		//fileTableMagic[4] = 33;
+		byteArrayOutputStream.write(fileTableHash);
 		
 		for(FileTableEntry entry : fileTable) {
 			entry.writeToStream(byteArrayOutputStream);			
@@ -248,7 +312,6 @@ public class ImgDat {
 			
 			outputStream.write(encoded	);
 		}
-		
 		
 		for(FileTableEntry entry : fileTable) {
 			
@@ -268,20 +331,14 @@ public class ImgDat {
 				
 				byte b = (byte)i;
 				
-			//	Log.i("enc: " + b);
-				
 				final byte encoded = decoder.decode(b);
 				
 				outputStream.write(encoded);
 			
 			}
-			inputStream.close();
-				
+			inputStream.close();			
 		}
 
 		outputStream.close();
-		
 	}
-	
-	
 }

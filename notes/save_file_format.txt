@@ -402,11 +402,77 @@ at 01cb6a9e
 CA 87 CC 01
 
 
-
-
-
 [98, 51, 48, 101, 57, 98,
 
 
 9C 06 CC 01 is the index to the file. it is added to some other number. 
+
+
+b30e9b06 here is the first. 
+
+fae452e8 1 value.
+100397a4 3 value. 
+f521a50b 2 value. 
+9f6b3da5 5 value. 
+0f8eedef 4 value. 
+212f5c84 7 value. 
+6074144f 6 value. 
+6b690a63 9 value. 
+928db513 8 value. 
+877154cb 10 value
+ac0edc8e 9 value. 
+dc4e31d2 12 value.
+f02599fc 11 value.
+4734d347 14 value.
+3594928f 13 value.
+
+
+this one is computed beforehand:
+0018F20C  F7 C2 90 1F DF 43 54 C6 B8 50 DC B0 11 DB 4F 25  ÷ÂßCTÆ¸PÜ°ÛO%
+0018F21C  7E 0C 8C C2 00 83 D0 04 68 E4 63 DA E8 F9 55 9E  ~.ŒÂ.ƒÐhäcÚèùUž
+0018F22C  C3 63 D1 24 CC 24 0D 1C 85 F9 FE 2C C6 17 C2 2D  ÃcÑ$Ì$.…ùþ,ÆÂ-
+
+
+this one is computed in the function:
+it is set in the last iteration if the loop. 
+0018E800  F1 8F 53 DB 27 57 BA EC 53 54 45 44 93 BC B3 EA  ñSÛ'WºìSTED“¼³ê
+0018E810  71 E1 02 4D A4 BA 9A 9A E7 2F 10 86 9B 62 D9 82  qáM¤ºššç/†›bÙ‚
+0018E820  50 51 BC 6D 97 E5 5B 4F 09 E3 0F 7F 05 3D AF 59  PQ¼m—å[O.ã=¯Y
+
+to compute this you use this array:
+
+edi+edx*8+40 = 
+0048EC55  0F 6F 44 D7 40 90 0F 6F 0C CB 0F 7F C2 0F 7F C3  oD×@o.ËÂÃ
+
+
+
+
+
+[eax+10] = 1F90C2F7   1F 90 C2 F7
+[ebp-2c8] = DB538FF1    DB 53 8F F1
+are summed to produce the hash
+FA E4 52 E8
+
+
+
+
+E8 52 E4 FA
+
+F1 8F 53 DB 
+
+0018e828
+
+
+edi+edx*8+8
+
+
+png
+
+gnp
+
+
+0018F264  08 C9 BC F3 67 E6 09 6A 3B A7 CA 84 85 AE 67 BB  É¼ógæ.j;§Ê„…®g»
+0018F274  2B F8 94 FE 72 F3 6E 3C F1 36 1D 5F 3A F5 4F A5  +ø”þrón<ñ6_:õO¥
+0018F284  D1 82 E6 AD 7F 52 0E 51 1F 6C 3E 2B 8C 68 05 9B  Ñ‚æ­RQl>+Œh›
+0018F294  6B BD 41 FB AB D9 83 1F 79 21 7E 13 19 CD E0 5B  k½Aû«Ùƒy!~Íà[
 

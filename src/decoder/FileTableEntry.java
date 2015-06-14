@@ -13,10 +13,10 @@ public class FileTableEntry {
 	}
 	
 	public byte[] filename; //the shift-jis encoded filename. 
-	public int size1; // we should probably use this one. 
-	public int size2; // we should probably ignore this one.
+	public int compressedSize; // we should probably use this one. 
+	public int originalSize; // we should probably ignore this one.
 	public int offset;
-	public byte magic;
+	public byte isNotCompressed;
 	public int seed;
 
 	public String getFilename() {
@@ -43,10 +43,10 @@ public class FileTableEntry {
 		outputStream.write(filename);
 		outputStream.write( '\0'); // terminate the string with null.
 
-		outputStream.write(Util.toBytes(size1));
-		outputStream.write(Util.toBytes(size2));
+		outputStream.write(Util.toBytes(compressedSize));
+		outputStream.write(Util.toBytes(originalSize));
 		outputStream.write(Util.toBytes(offset));
-		outputStream.write(magic);
+		outputStream.write(isNotCompressed);
 		outputStream.write(Util.toBytes(seed));
 	}
 
@@ -54,10 +54,10 @@ public class FileTableEntry {
 
 		return 
 				"{filename:" + getFilename() +
-				", size1: " + size1 + 
-				", size2: " + size2 +  				
+				", compressedSize: " + compressedSize + 
+				", originalSize: " + originalSize +  				
 				", offset: " + Integer.toHexString(offset) +  
-				", magic: " + magic +  		
+				", isNotCompressed: " + isNotCompressed +  		
 				", seed: " + Integer.toHexString(seed) +  	
 				"}";
 	}

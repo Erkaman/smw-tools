@@ -1,6 +1,8 @@
 package decoder;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,4 +41,19 @@ public class Util {
 
 		return bytes;
 	}
+	
+	public static int readInt(final RandomAccessFile inputStream) throws IOException {
+		final byte b1 = inputStream.readByte();
+		final byte b2 = inputStream.readByte();
+		final byte b3 = inputStream.readByte();
+		final byte b4 = inputStream.readByte();
+
+		return toInt(b1,b2,b3,b4);
+	}
+
+	public static int toInt(final byte b1, final byte b2, final byte b3, final byte b4) {
+
+		return ((b4&0xFF) << 24) | ((b3&0xFF) << 16) | ((b2&0xFF) << 8) | (b1&0xFF);
+	}
+
 }
